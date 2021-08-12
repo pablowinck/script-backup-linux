@@ -1,15 +1,18 @@
 ################################
 # SCRIPT BACKUP SERVIDOR DADOS #
 ################################
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+NC='\033[0m' # Sem cor
 
 DATA=$(date +%d-%m-%Y-%H.%M)
 
 #! PARTIÇÃO ONDE O HD EXTERNO É MONTADO
+
 PARTICAO=/dev/sda3
-###* sempre que trocar a porta USB, o caminho será o diferente
+
+###* sempre que trocar a porta USB, o caminho será diferente
 
 function realizarBackup {
     #* COMPACTA TODO O CONTEÚDO DAS PASTAS DENTRO DE /BACKUP INDIVIDUALMENTE.
