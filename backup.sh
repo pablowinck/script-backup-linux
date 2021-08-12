@@ -14,9 +14,13 @@ PARTICAO=/dev/sda3
 
 PASTA=/home/Grupo/
 
+DIAS=5
+
 function realizarBackup {
     #* COMPACTA TODO O CONTEÚDO DAS PASTAS DENTRO DE /BACKUP INDIVIDUALMENTE.
     tar -zcvf /backup/backup-"$DATA".tar.gz $PASTA
+
+    find /backup -name *.tar.gz -mtime $DIAS -exec rm -f {} \;
 
     #* DESMONTA O PONTO DE MONTAGEM /BACKUP
     umount /backup
