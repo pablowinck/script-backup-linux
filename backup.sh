@@ -2,21 +2,21 @@
 # SCRIPT BACKUP SERVIDOR DADOS #
 ################################
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # Sem cor
+####### CORES ########
+RED='\033[0;31m'   ###
+GREEN='\033[0;32m' ###
+NC='\033[0m'       ### Sem cor
+######################
 
 DATA=$(date +%d-%m-%Y-%H.%M)
 
-#! PARTIÇÃO ONDE O HD EXTERNO É MONTADO
-
 PARTICAO=/dev/sda3
 
-###* sempre que trocar a porta USB, o caminho será diferente
+PASTA=/home/Grupo/
 
 function realizarBackup {
     #* COMPACTA TODO O CONTEÚDO DAS PASTAS DENTRO DE /BACKUP INDIVIDUALMENTE.
-    tar -zcvf /backup/backup-"$DATA".tar.gz /home/Grupo/
+    tar -zcvf /backup/backup-"$DATA".tar.gz $PASTA
 
     #* DESMONTA O PONTO DE MONTAGEM /BACKUP
     umount /backup
