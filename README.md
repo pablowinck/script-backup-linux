@@ -20,4 +20,4 @@ Sempre será alterado para data/hora atual.
 
 </br></br>_obs: para ler melhor o script, use a extensão Better Comments no VSCODE_</br>
 
-_obs2: você precisa dar sudo su, antes de executar o script_
+_obs2: (UBUNTU) você precisa dar sudo su, antes de executar o script_
