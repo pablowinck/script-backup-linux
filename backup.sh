@@ -8,32 +8,93 @@ GREEN='\033[0;32m' ###
 NC='\033[0m'       ### Sem cor
 ######################
 
+printf "[ ${GREEN}✔${NC} ] Iniciando script...\n"
+
 DATA=$(date +%d-%m-%Y-%H.%M)
 
-PARTICAO=/dev/sda3
+PARTICAO=/dev/sdb3
 
 PASTA=/home/Grupo/
 
 DIAS=5
 
-function realizarBackup {
-    #* COMPACTA TODO O CONTEÚDO DAS PASTAS DENTRO DE /BACKUP INDIVIDUALMENTE.
-    tar -zcvf /backup/backup-"$DATA".tar.gz $PASTA
-
-    find /backup -name *.tar.gz -mtime $DIAS -exec rm -f {} \;
-
-    #* DESMONTA O PONTO DE MONTAGEM /BACKUP
-    umount /backup
-    #umount /dev/sda3
-
-    printf "${GREEN}Backup realizado com sucesso${NC}\n"
-
-    exit 1
+function try() {
+    [[ $- = *e* ]]
+    SAVED_OPT_E=$?
+    set +e
+}
+function catch() {
+    export ex_code=$?
+    (($SAVED_OPT_E)) && set +e
+    return $ex_code
+}
+function throw() {
+    exit $1
+}
+function throwErrors() {
+    set -e
 }
 
-#* MONTA O PONTO DE MONTAGEM /BACKUP
-mount $PARTICAO /backup
-montado=$(mount | grep /backup)
+export BackupException=100
+export DeleteException=101
+export UmontException=102
+export MontException=103
+
+try
+(
+    mount $PARTICAO /backup || throw $MontException
+    montado=$(mount | grep /backup)
+    throwErrors
+
+    printf "[ ${GREEN}✔${NC} ] Unidade montada com sucesso\n"
+)
+catch || {
+    case $ex_code in
+    $MontException)
+        printf "[ ${RED}X${NC} ] Erro ao montar unidade, verifique a pasta destino\n"
+        exit 0
+        ;;
+    esac
+}
+
+function realizarBackup {
+    try
+    (
+        printf "\nComeçando o backup...\n"
+        tar -zcvf /backup/backup-"$DATA".tar.gz $PASTA || throw $BackupException
+
+        throwErrors
+        # printf "\nExcluíndo arquivos antigos...\n"
+        # find /backup -name *.tar.gz -mtime $DIAS -exec rm -f {} \; && throw $DeleteException
+
+        # throwErrors
+
+        umount /backup || throw $UmontException
+        #umount /dev/sda3
+        throwErrors
+        printf "\n\n[ ${GREEN}✔${NC} ] Unidade desmontada com sucesso\n"
+
+        printf "[ ${GREEN}✔${NC} ] Backup realizado com sucesso\n"
+
+        exit 1
+    )
+    catch || {
+        case $ex_code in
+        $BackupException)
+            printf "[ ${RED}X${NC} ] Erro ao realizar o backup, verifique a pasta destino\n"
+            umount /backup
+            ;;
+        $DeleteException)
+            printf "[ ${RED}X${NC} ] Erro ao excluir arquivos antigos\n"
+            umount /backup
+            ;;
+        $UmontException)
+            printf "[ ${RED}X${NC} ] Erro ao desmontar unidade, verifique a pasta destino\n"
+            umount /backup
+            ;;
+        esac
+    }
+}
 
 if [ -e /backup/backup-"$DATA".tar.gz ]; then
     t=1
@@ -41,23 +102,20 @@ if [ -e /backup/backup-"$DATA".tar.gz ]; then
         printf "Esse backup já existe, deseja sobrescreve-lo? [ s / n ]  "
         read sim_nao
         case $sim_nao in
-        s) realizarBackup ;;
+        s)
+            realizarBackup
+            exit 0
+            ;;
         n)
             echo "Script Finalizado"
             t=$(($t + 1))
             ;;
-        *) printf "${RED}Opção inválida${NC} \n" ;;
+        *) printf "[ ${RED}X${NC} ] Opção inválida \n" ;;
         esac
     done
 
 else
 
-    #! SE A MONTAGEM NÃO ESTIVER UP ENTÃO FECHA, CASO CONTRÁRIO REALIZA O BACKUP
-    if [ -z "$montado" ]; then
-        exit 1
-    else
+    realizarBackup
 
-        realizarBackup
-
-    fi
 fi
