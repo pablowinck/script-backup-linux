@@ -64,17 +64,21 @@ function realizarBackup {
         tar -zcvf /backup/backup-"$DATA".tar.gz $PASTA || throw $BackupException
 
         throwErrors
-        # printf "\nExcluíndo arquivos antigos...\n"
-        # find /backup -name *.tar.gz -mtime $DIAS -exec rm -f {} \; && throw $DeleteException
 
-        # throwErrors
+        printf "\n\n[ ${GREEN}✔${NC} ] Backup realizado com sucesso\n"
+
+        find /backup -name *.tar.gz -mtime $DIAS -exec rm -f {} \; || throw $DeleteException
+
+        throwErrors
+
+        printf "[ ${GREEN}✔${NC} ] Arquivos de ${DIAS} dias atras, deletados com sucesso\n"
 
         umount /backup || throw $UmontException
         #umount /dev/sda3
-        throwErrors
-        printf "\n\n[ ${GREEN}✔${NC} ] Unidade desmontada com sucesso\n"
 
-        printf "[ ${GREEN}✔${NC} ] Backup realizado com sucesso\n"
+        throwErrors
+
+        printf "[ ${GREEN}✔${NC} ] Unidade desmontada com sucesso\n"
 
         exit 1
     )
@@ -85,7 +89,7 @@ function realizarBackup {
             umount /backup
             ;;
         $DeleteException)
-            printf "[ ${RED}X${NC} ] Erro ao excluir arquivos antigos\n"
+            printf "[ ${RED}X${NC} ] Erro ao deletar arquivos antigos\n"
             umount /backup
             ;;
         $UmontException)
