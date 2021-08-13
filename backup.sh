@@ -112,6 +112,7 @@ if [ -e /backup/backup-"$DATA".tar.gz ]; then
             ;;
         n)
             echo "Script Finalizado"
+            umount /backup
             t=$(($t + 1))
             ;;
         *) printf "[ ${RED}X${NC} ] Opção inválida \n" ;;
